@@ -113,7 +113,7 @@ jobs:
         shell: bash
         run: |
           cd ${{ env.CACHE_PATH }}
-          pip install ./ambuild
+          python -m pip install ./ambuild
 
       - name: Select clang compiler
         if: startsWith(runner.os, 'Linux')
