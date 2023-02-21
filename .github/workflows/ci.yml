@@ -92,8 +92,12 @@ jobs:
               git remote set-url origin "$1"
               git fetch --depth 1 origin "$2"
               git checkout --force --recurse-submodules FETCH_HEAD
+              git submodule init
+              git submodule update --depth 1
               cd ..
           }
+          # We are aware of what we are doing!
+          git config --global advice.detachedHead false
           # Verify github cache, and see if we don't have the sdks already cloned and update them
           for sdk in ${{ env.SDKS }}
           do
@@ -102,6 +106,8 @@ jobs:
           shallow_checkout "https://github.com/alliedmodders/ambuild" "master" "ambuild"
           shallow_checkout "https://github.com/alliedmodders/sourcemod" "${{env.SOURCEMOD_VERSION}}-dev" "sourcemod"
           shallow_checkout "https://github.com/alliedmodders/metamod-source/" "${{env.MMSOURCE_VERSION}}-dev" "metamod-source"
+          # But maybe others aren't (also probably unnecessary because git actions but paranoia)
+          git config --global advice.detachedHead true
 
       - name: Setup AMBuild
         working-directory: ${{ env.CACHE_PATH }}
