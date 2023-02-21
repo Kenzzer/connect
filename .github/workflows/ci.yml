@@ -124,6 +124,7 @@ jobs:
           ${{ matrix.cxx }} --version
 
       - name: Build
+        shell: bash
         working-directory: extension
         run: |
           mkdir build
