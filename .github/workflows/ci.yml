@@ -79,8 +79,8 @@ jobs:
       - shell: bash
         name: Install dependencies
         run: |
-          mkdir -p ${{ env.CACHE_PATH }}
-          cd ${{ env.CACHE_PATH }}
+          mkdir -p "${{ env.CACHE_PATH }}"
+          cd "${{ env.CACHE_PATH }}"
           shallow_checkout () {
               # Param 1 is origin
               # Param 2 is branch
@@ -112,7 +112,7 @@ jobs:
       - name: Setup AMBuild
         shell: bash
         run: |
-          cd ${{ env.CACHE_PATH }}
+          cd "${{ env.CACHE_PATH }}"
           python -m pip install ./ambuild
 
       - name: Select clang compiler
