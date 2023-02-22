@@ -30,7 +30,7 @@ jobs:
     runs-on: ${{ matrix.os }}
 
     env:
-      SDKS: 'css' #'css hl2dm dods sdk2013 tf2 l4d l4d2 csgo'
+      SDKS: 'css hl2dm dods sdk2013 tf2 l4d l4d2 csgo'
       MMSOURCE_VERSION: '1.10'
       SOURCEMOD_VERSION: '1.11'
       CACHE_PATH: ${{ github.workspace }}/cache
