@@ -30,7 +30,7 @@ jobs:
     runs-on: ${{ matrix.os }}
 
     env:
-      SDKS: 'css hl2dm dods sdk2013 tf2 l4d l4d2 csgo'
+      SDKS: 'css' #'css hl2dm dods sdk2013 tf2 l4d l4d2 csgo'
       MMSOURCE_VERSION: '1.10'
       SOURCEMOD_VERSION: '1.11'
       CACHE_PATH: ${{ github.workspace }}/cache
@@ -129,7 +129,7 @@ jobs:
         run: |
           mkdir build
           cd build
-          ls ${{ env.CACHE_PATH }}
+          ls "${{ env.CACHE_PATH }}"
           python ../configure.py --enable-auto-versioning --enable-optimize --sdks="${{ env.SDKS }}" --mms-path="${{ env.CACHE_PATH }}/metamod-source" --hl2sdk-root="${{ env.CACHE_PATH }}" --sm-path="${{ env.CACHE_PATH }}/sourcemod"
           ambuild
 
