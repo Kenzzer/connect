@@ -166,7 +166,6 @@ class ExtensionConfig(object):
     if builder.options.hl2sdk_root:
       if not os.path.isdir(builder.options.hl2sdk_root):
         raise Exception('HL2SDK root path {0} is invalid'.format(builder.options.hl2sdk_root))
-      print(os.listdir(builder.options.hl2sdk_root))
 
     for sdk_name in PossibleSDKs:
       sdk = PossibleSDKs[sdk_name]
