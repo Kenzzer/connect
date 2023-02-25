@@ -2,9 +2,9 @@ name: Extension builder
 
 on:
   push:
-    branches: [ action ]
+    branches: [ action, master ]
   pull_request:
-    branches: [ action ]
+    branches: [ * ]
 
 
 jobs:
@@ -30,6 +30,7 @@ jobs:
     runs-on: ${{ matrix.os }}
 
     env:
+      PROJECT: 'connect'
       SDKS: 'css hl2dm dods sdk2013 tf2 l4d l4d2 csgo'
       MMSOURCE_VERSION: '1.10'
       SOURCEMOD_VERSION: '1.11'
@@ -129,89 +130,25 @@ jobs:
         run: |
           mkdir build
           cd build
-          ls "${{ env.CACHE_PATH }}"
           python ../configure.py --enable-auto-versioning --enable-optimize --sdks="${{ env.SDKS }}" --mms-path="${{ env.CACHE_PATH }}/metamod-source" --hl2sdk-root="${{ env.CACHE_PATH }}" --sm-path="${{ env.CACHE_PATH }}/sourcemod"
           ambuild
 
       - name: Upload artifact
-        if: github.event_name == 'push' && (startsWith(matrix.os, 'ubuntu-latest') || startsWith(matrix.os, 'windows-latest'))
-        uses: actions/upload-artifact@v1
-        with:
-          name: extension_${{ runner.os }}
-          path: ${{ github.workspace }}/extension/build/package
-      
-      #- name: Upload artifact
-      #  if: github.event_name == 'push' && strategy.job-index == 0
-      #  uses: actions/upload-artifact@v1
-      #  with:
-      #    name: extension_versioning_files
-      #    path: ${{ github.workspace }}/CBaseNPC/build/includes
+        if: github.event_name == 'push' && github.ref == 'action' && (startsWith(matrix.os, 'ubuntu-latest') || startsWith(matrix.os, 'windows-latest'))
+        shell: bash
+        working-directory: extension/build
+        run: |
+          PLATFORM="${{ runner.os }}"
+          FILENAME="$(cat ./includes/filename_versioning.txt)"
+          ZIP_FILENAME="${{ env.PROJECT }}-${FILENAME}-${PLATFORM,}.zip"
 
-  release:
-    if: github.event_name == 'push'
-    runs-on: ubuntu-latest
-    needs: build
+          cd package
+          zip -r "${ZIP_FILENAME}" .
 
-    steps:
-    - run: sudo apt-get install -y tree
+          AUTHORIZATION="$(echo -n '${{ secrets.USERNAME }}:${{ secrets.PASSWORD }}' | base64)"
+          echo "::add-mask::${AUTHORIZATION}"
 
-    #- name: Download Linux release
-    #  uses: actions/download-artifact@v1
-    #  with:
-    #    name: cbasenpc_Linux
-    #    path: cbasenpc_linux
-
-    #- name: Download Windows release
-    #  uses: actions/download-artifact@v1
-    #  with:
-    #    name: cbasenpc_Windows
-    #    path: cbasenpc_windows
-
-    #- name: Download CBaseNPC verisioning files
-    #  uses: actions/download-artifact@v1
-    #  with:
-    #    name: cbasenpc_versioning_files
-    #    path: cbasenpc_versioning_files
-
-    #- name: Prepare archives
-    #  run: |
-    #    cd cbasenpc_linux
-    #    tar -czf cbasenpc_linux.tar.gz *
-    #    cd ../cbasenpc_windows
-    #    zip -r cbasenpc_windows.zip .
-    #    cd ..
-    #    RELEASE="$(cat ./cbasenpc_versioning_files/git_action_release)"
-    #    echo "GITHUB_RELEASE_TAG=$RELEASE" >> $GITHUB_ENV
-
-    #- name: Create Release
-    #  id: create_release
-    #  uses: actions/create-release@v1
-    #  env:
-    #    GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-    #  with:
-    #      tag_name: ${{ env.GITHUB_RELEASE_TAG }}
-    #      release_name: CBaseNPC ${{ env.GITHUB_RELEASE_TAG }}
-    #      body: |
-    #        ${{ github.event.head_commit.message }}
-    #      draft: false
-    #      prerelease: false
-
-    #- name: Upload Linux release
-    #  uses: actions/upload-release-asset@v1
-    #  env:
-    #    GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-    #  with:
-    #    upload_url: ${{ steps.create_release.outputs.upload_url }}
-    #    asset_path: ./cbasenpc_linux/cbasenpc_linux.tar.gz
-    #    asset_name: cbasenpc${{ env.GITHUB_RELEASE_TAG }}_linux.tar.gz
-    #    asset_content_type: application/gzip
-
-    #- name: Upload Windows release
-    #  uses: actions/upload-release-asset@v1
-    #  env:
-    #    GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-    #  with:
-    #    upload_url: ${{ steps.create_release.outputs.upload_url }}
-    #    asset_path: ./cbasenpc_windows/cbasenpc_windows.zip
-    #    asset_name: cbasenpc${{ env.GITHUB_RELEASE_TAG }}_windows.zip
-    #    asset_content_type: application/zip
+          HTTP_CODE=$(curl -XPOST -H 'Authorization: Basic ${AUTHORIZATION}' -H 'Content-Type: application/zip' --output /dev/null --silent --write-out "%{http_code}" --data-binary "@${ZIP_FILENAME}" "https://builds.limetech.io/upload.php?project=${{ env.PROJECT }}&branch=${{ github.ref }}&filename=${ZIP_FILENAME}")
+          if test ${HTTP_CODE} -ne 200; then
+            exit ${HTTP_CODE}
+          fi
