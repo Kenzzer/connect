@@ -133,8 +133,8 @@ jobs:
           python ../configure.py --enable-auto-versioning --enable-optimize --sdks="${{ env.SDKS }}" --mms-path="${{ env.CACHE_PATH }}/metamod-source" --hl2sdk-root="${{ env.CACHE_PATH }}" --sm-path="${{ env.CACHE_PATH }}/sourcemod"
           ambuild
 
-      - name: Upload artifact
-        if: github.event_name == 'push' && github.ref == 'action' && (startsWith(matrix.os, 'ubuntu-latest') || startsWith(matrix.os, 'windows-latest'))
+      - name: Upload release
+        if: github.event_name == 'push' && github.ref == 'refs/heads/action' && (startsWith(matrix.os, 'ubuntu-latest') || startsWith(matrix.os, 'windows-latest'))
         shell: bash
         working-directory: extension/build
         run: |
